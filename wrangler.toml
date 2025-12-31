@@ -1,20 +1,11 @@
-# Cloudflare Pages configuration
-# Documentation: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+# Cloudflare Pages configuration (Static Export)
+# Documentation: https://developers.cloudflare.com/pages/
 
 name = "ashok-world"
-compatibility_date = "2024-12-30"
-compatibility_flags = ["nodejs_compat"]
 
-# Pages build output directory (REQUIRED for Cloudflare Pages)
-pages_build_output_dir = ".open-next"
+# Static export output directory
+pages_build_output_dir = "out"
 
-# D1 Database binding
-# Replace YOUR_DATABASE_ID with your actual D1 database ID from Cloudflare Dashboard
-[[d1_databases]]
-binding = "DB"
-database_name = "ashok-world-db"
-database_id = "9b915701-ab41-44fd-b499-d97989f3e693"  # Get this from: Dashboard > D1 > ashok-world-db
-
-# Environment variables
-[vars]
-ENVIRONMENT = "production"
+# Note: D1 database not needed for static site
+# For analytics, consider using Cloudflare Web Analytics (free):
+# https://www.cloudflare.com/web-analytics/

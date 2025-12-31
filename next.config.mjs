@@ -1,18 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Static export for Cloudflare Pages (no worker size limits!)
+  output: 'export',
+  
   // Configure page extensions to include MDX
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
 
-  // Disable image optimization for Cloudflare (use Cloudflare Images instead)
+  // Disable image optimization for static export
   images: {
     unoptimized: true,
   },
 
-  // Webpack configuration
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false };
-    return config;
-  },
+  // Disable trailing slash for cleaner URLs
+  trailingSlash: false,
 
   // ESLint configuration
   eslint: {
