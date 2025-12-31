@@ -1,0 +1,239 @@
+---
+title: "The Production Kubernetes Checklist"
+description: "Everything you need to verify before running Kubernetes in production. Security, reliability, observability, and operational readiness."
+date: "2024-12-05"
+category: "infra"
+tags: ["Kubernetes", "DevOps", "Security", "Production"]
+image: "/images/blog/k8s-checklist.jpg"
+published: true
+featured: false
+---
+
+Running Kubernetes in production is vastly different from local development. This checklist covers the critical areas that often get overlooked until it's too late.
+
+## Security Hardening
+
+### Pod Security Standards
+
+Enforce pod security at the namespace level:
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+```
+
+### Network Policies
+
+Default deny all traffic, then allow explicitly:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: production
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-web-traffic
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+```
+
+<Callout type="warning" title="Security First">
+  Never run containers as root in production. Always specify a non-root user in your Dockerfiles and pod specs.
+</Callout>
+
+## Resource Management
+
+### Always Set Resource Requests and Limits
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+```
+
+### Vertical Pod Autoscaler for Right-Sizing
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: api-vpa
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api-server
+  updatePolicy:
+    updateMode: "Auto"
+```
+
+## High Availability
+
+### Pod Disruption Budgets
+
+Prevent accidental downtime during maintenance:
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: api-server
+```
+
+### Pod Anti-Affinity
+
+Spread pods across nodes:
+
+```yaml
+spec:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app: api-server
+            topologyKey: kubernetes.io/hostname
+```
+
+## Observability Stack
+
+### The Three Pillars
+
+| Pillar | Tool | Purpose |
+|--------|------|---------|
+| Metrics | Prometheus | Time-series data |
+| Logs | Loki/ELK | Log aggregation |
+| Traces | Jaeger/Tempo | Distributed tracing |
+
+### Prometheus ServiceMonitor
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: api-monitor
+spec:
+  selector:
+    matchLabels:
+      app: api-server
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+```
+
+<Callout type="tip" title="Golden Signals">
+  Focus on the four golden signals: Latency, Traffic, Errors, and Saturation. These tell you 80% of what you need to know about service health.
+</Callout>
+
+## Backup and Disaster Recovery
+
+### Velero for Cluster Backups
+
+```bash
+# Install Velero
+velero install \
+  --provider aws \
+  --bucket my-backup-bucket \
+  --secret-file ./credentials
+
+# Create a backup
+velero backup create production-backup \
+  --include-namespaces production
+
+# Schedule daily backups
+velero schedule create daily-backup \
+  --schedule="0 2 * * *" \
+  --include-namespaces production
+```
+
+## The Complete Checklist
+
+```markdown
+## Security
+- [ ] Pod Security Standards enforced
+- [ ] Network policies configured
+- [ ] RBAC properly configured
+- [ ] Secrets encrypted at rest
+- [ ] Image scanning in CI/CD
+
+## Reliability
+- [ ] Resource requests/limits set
+- [ ] Pod disruption budgets defined
+- [ ] Anti-affinity rules configured
+- [ ] Liveness/readiness probes
+- [ ] Horizontal pod autoscaling
+
+## Observability
+- [ ] Metrics collection (Prometheus)
+- [ ] Log aggregation (Loki/ELK)
+- [ ] Distributed tracing
+- [ ] Alerting rules defined
+- [ ] Dashboards created
+
+## Operations
+- [ ] Backup strategy implemented
+- [ ] Disaster recovery tested
+- [ ] Runbooks documented
+- [ ] On-call rotation established
+```
+
+## Conclusion
+
+Production Kubernetes requires attention to:
+
+1. **Security** - Defense in depth at every layer
+2. **Reliability** - Plan for failure at all levels
+3. **Observability** - Know what's happening in your cluster
+4. **Operations** - Have runbooks and tested recovery procedures
+
+Don't skip these steps. Your future self will thank you.
+

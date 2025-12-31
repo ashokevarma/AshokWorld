@@ -1,0 +1,130 @@
+---
+title: "Building Production-Ready RAG Systems"
+description: "A comprehensive guide to building Retrieval-Augmented Generation systems that scale. From vector databases to prompt engineering, learn the patterns that work."
+date: "2024-12-15"
+category: "ai"
+tags: ["RAG", "LLM", "Vector Database", "AI", "OpenAI"]
+image: "/images/blog/rag-systems.jpg"
+published: true
+featured: true
+---
+
+Retrieval-Augmented Generation (RAG) has become the go-to architecture for building AI applications that need access to custom knowledge bases. In this deep dive, we'll explore how to build production-ready RAG systems that actually scale.
+
+## What is RAG?
+
+RAG combines the power of large language models with external knowledge retrieval. Instead of relying solely on the model's training data, RAG systems fetch relevant context from a knowledge base before generating responses.
+
+```typescript
+interface RAGPipeline {
+  embed: (text: string) => Promise<number[]>;
+  search: (embedding: number[], k: number) => Promise<Document[]>;
+  generate: (query: string, context: Document[]) => Promise<string>;
+}
+```
+
+## The Architecture
+
+A typical RAG system consists of three main components:
+
+1. **Embedding Pipeline** - Converts text into vector representations
+2. **Vector Store** - Stores and retrieves vectors efficiently
+3. **Generation Layer** - Uses retrieved context to generate responses
+
+### Embedding Pipeline
+
+The quality of your embeddings directly impacts retrieval accuracy. Here's a production-ready embedding setup:
+
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+class EmbeddingService:
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
+    
+    def embed(self, texts: list[str]) -> np.ndarray:
+        return self.model.encode(
+            texts,
+            normalize_embeddings=True,
+            show_progress_bar=True
+        )
+    
+    def embed_query(self, query: str) -> np.ndarray:
+        return self.model.encode(query, normalize_embeddings=True)
+```
+
+<Callout type="tip" title="Pro Tip">
+  Always normalize your embeddings for cosine similarity search. This ensures consistent similarity scores regardless of vector magnitude.
+</Callout>
+
+## Chunking Strategies
+
+How you split your documents matters more than you might think. Poor chunking leads to:
+
+- Lost context between chunks
+- Irrelevant retrieval results
+- Hallucinated responses
+
+### Semantic Chunking
+
+Instead of fixed-size chunks, consider semantic boundaries:
+
+```python
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=512,
+    chunk_overlap=50,
+    separators=["\n\n", "\n", ". ", " "],
+    length_function=len,
+)
+
+chunks = splitter.split_documents(documents)
+```
+
+## Vector Store Selection
+
+| Database | Best For | Limitations |
+|----------|----------|-------------|
+| Pinecone | Production scale | Cost at scale |
+| Weaviate | Hybrid search | Self-hosting complexity |
+| Chroma | Prototyping | Not production-ready |
+| pgvector | Existing Postgres | Performance limits |
+
+## Retrieval Optimization
+
+### Hybrid Search
+
+Combine semantic and keyword search for better results:
+
+```python
+def hybrid_search(query: str, k: int = 5) -> list[Document]:
+    # Semantic search
+    semantic_results = vector_store.similarity_search(query, k=k*2)
+    
+    # Keyword search (BM25)
+    keyword_results = bm25_search(query, k=k*2)
+    
+    # Reciprocal Rank Fusion
+    return reciprocal_rank_fusion(
+        [semantic_results, keyword_results],
+        k=k
+    )
+```
+
+<Callout type="warning" title="Common Pitfall">
+  Don't over-retrieve! Stuffing too much context into the prompt leads to worse results. Aim for 3-5 highly relevant chunks.
+</Callout>
+
+## Conclusion
+
+Building production RAG systems requires careful attention to:
+
+1. Embedding quality and normalization
+2. Intelligent chunking strategies
+3. Appropriate vector store selection
+4. Retrieval optimization techniques
+
+Start simple, measure everything, and iterate based on real user feedback.
+

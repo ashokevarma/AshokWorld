@@ -1,0 +1,243 @@
+---
+title: "PostgreSQL Performance Tuning: A Practical Guide"
+description: "Real-world PostgreSQL optimization techniques. From query analysis to configuration tuning, learn how to make your database fly."
+date: "2024-11-28"
+category: "database"
+tags: ["PostgreSQL", "Performance", "Database", "SQL"]
+image: "/images/blog/postgres-tuning.jpg"
+published: true
+featured: false
+---
+
+PostgreSQL is incredibly powerful out of the box, but getting peak performance requires understanding its internals. This guide covers the optimizations that have the biggest impact in production.
+
+## Query Analysis with EXPLAIN ANALYZE
+
+Before optimizing, understand what's happening:
+
+```sql
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+SELECT u.name, COUNT(o.id) as order_count
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE u.created_at > '2024-01-01'
+GROUP BY u.id, u.name
+ORDER BY order_count DESC
+LIMIT 10;
+```
+
+Key metrics to watch:
+- **Actual Time** - Real execution time
+- **Rows** - Actual vs estimated rows
+- **Buffers** - Shared/local hits and reads
+
+<Callout type="tip" title="Pro Tip">
+  When `Rows Removed by Filter` is high relative to rows returned, you likely need an index.
+</Callout>
+
+## Indexing Strategies
+
+### Partial Indexes
+
+Only index what you query:
+
+```sql
+-- Instead of indexing all orders
+CREATE INDEX idx_orders_status ON orders(status);
+
+-- Index only active orders (much smaller)
+CREATE INDEX idx_orders_active 
+ON orders(created_at) 
+WHERE status = 'active';
+```
+
+### Covering Indexes
+
+Include columns to avoid table lookups:
+
+```sql
+-- Query needs name and email
+SELECT name, email FROM users WHERE id = 123;
+
+-- Covering index - no table access needed
+CREATE INDEX idx_users_id_covering 
+ON users(id) 
+INCLUDE (name, email);
+```
+
+### Index for JSON Queries
+
+```sql
+-- GIN index for JSONB containment
+CREATE INDEX idx_products_metadata 
+ON products 
+USING GIN (metadata jsonb_path_ops);
+
+-- Query using the index
+SELECT * FROM products 
+WHERE metadata @> '{"category": "electronics"}';
+```
+
+## Configuration Tuning
+
+### Memory Settings
+
+```sql
+-- Shared buffers (25% of RAM, max ~8GB)
+shared_buffers = '4GB'
+
+-- Work memory (per operation, be careful!)
+work_mem = '256MB'
+
+-- Maintenance work memory (for VACUUM, CREATE INDEX)
+maintenance_work_mem = '1GB'
+
+-- Effective cache size (75% of RAM)
+effective_cache_size = '12GB'
+```
+
+### Write Performance
+
+```sql
+-- WAL settings for write-heavy workloads
+wal_buffers = '64MB'
+checkpoint_completion_target = 0.9
+max_wal_size = '4GB'
+min_wal_size = '1GB'
+
+-- Parallel workers
+max_parallel_workers_per_gather = 4
+max_parallel_workers = 8
+```
+
+<Callout type="warning" title="Test First">
+  Always test configuration changes in a staging environment. What works for one workload may hurt another.
+</Callout>
+
+## Query Optimization Patterns
+
+### Avoid N+1 Queries
+
+```sql
+-- Bad: N+1 pattern (application makes N queries)
+SELECT * FROM users WHERE id = 1;
+SELECT * FROM orders WHERE user_id = 1;
+SELECT * FROM orders WHERE user_id = 2;
+-- ... repeated for each user
+
+-- Good: Single query with JOIN
+SELECT u.*, o.*
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE u.id IN (1, 2, 3, ...);
+```
+
+### Efficient Pagination
+
+```sql
+-- Bad: OFFSET is slow for large values
+SELECT * FROM products 
+ORDER BY id 
+LIMIT 20 OFFSET 100000; -- Scans 100,020 rows!
+
+-- Good: Keyset pagination
+SELECT * FROM products 
+WHERE id > 100000 
+ORDER BY id 
+LIMIT 20; -- Only scans 20 rows
+```
+
+### CTEs vs Subqueries
+
+```sql
+-- CTE (materialized in PG < 12, optimized in >= 12)
+WITH active_users AS (
+  SELECT id FROM users WHERE status = 'active'
+)
+SELECT * FROM orders 
+WHERE user_id IN (SELECT id FROM active_users);
+
+-- Subquery (often more efficient)
+SELECT * FROM orders 
+WHERE user_id IN (
+  SELECT id FROM users WHERE status = 'active'
+);
+```
+
+## Monitoring Queries
+
+### Find Slow Queries
+
+```sql
+-- Enable pg_stat_statements
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+-- Find slowest queries
+SELECT 
+  round(total_exec_time::numeric, 2) as total_time_ms,
+  calls,
+  round(mean_exec_time::numeric, 2) as mean_time_ms,
+  round((100 * total_exec_time / 
+    sum(total_exec_time) over ())::numeric, 2) as percentage,
+  query
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 20;
+```
+
+### Find Missing Indexes
+
+```sql
+SELECT 
+  schemaname || '.' || relname as table,
+  seq_scan,
+  seq_tup_read,
+  idx_scan,
+  idx_tup_fetch,
+  seq_tup_read / NULLIF(seq_scan, 0) as avg_seq_rows
+FROM pg_stat_user_tables
+WHERE seq_scan > 0
+ORDER BY seq_tup_read DESC
+LIMIT 20;
+```
+
+## Performance Checklist
+
+```markdown
+## Query Level
+- [ ] EXPLAIN ANALYZE all slow queries
+- [ ] Check for sequential scans on large tables
+- [ ] Verify index usage
+- [ ] Optimize N+1 patterns
+
+## Index Level
+- [ ] Create indexes for WHERE clauses
+- [ ] Use partial indexes where applicable
+- [ ] Consider covering indexes
+- [ ] Remove unused indexes
+
+## Configuration
+- [ ] Set shared_buffers (25% RAM)
+- [ ] Configure work_mem appropriately
+- [ ] Tune checkpoint settings
+- [ ] Enable parallel query
+
+## Monitoring
+- [ ] pg_stat_statements enabled
+- [ ] Regular ANALYZE runs
+- [ ] Monitor cache hit ratio
+- [ ] Alert on slow queries
+```
+
+## Conclusion
+
+PostgreSQL performance tuning is an iterative process:
+
+1. **Measure** - Use EXPLAIN ANALYZE and pg_stat_statements
+2. **Identify** - Find the bottlenecks
+3. **Optimize** - Apply targeted improvements
+4. **Verify** - Confirm the improvement
+5. **Repeat** - Performance tuning is ongoing
+
+Remember: premature optimization is the root of all evil. Always measure first!
+
