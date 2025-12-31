@@ -3,9 +3,6 @@ const nextConfig = {
   // Configure page extensions to include MDX
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
 
-  // Force static output for Cloudflare Pages
-  output: 'standalone',
-
   // Disable image optimization for Cloudflare (use Cloudflare Images instead)
   images: {
     unoptimized: true,
