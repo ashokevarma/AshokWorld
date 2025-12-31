@@ -73,8 +73,9 @@ Badge.displayName = 'Badge';
 /**
  * Category badge component - convenience wrapper
  */
-interface CategoryBadgeProps extends Omit<BadgeProps, 'variant' | 'category'> {
+interface CategoryBadgeProps extends Omit<BadgeProps, 'variant' | 'category' | 'children'> {
   category: Category;
+  children?: ReactNode;
 }
 
 export const CategoryBadge = forwardRef<HTMLSpanElement, CategoryBadgeProps>(
