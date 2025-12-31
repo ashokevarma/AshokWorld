@@ -8,11 +8,8 @@ compatibility_flags = ["nodejs_compat"]
 # Pages build output directory (REQUIRED for Cloudflare Pages)
 pages_build_output_dir = ".open-next"
 
-# D1 Database binding (optional - configure after creating DB)
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "ashok-world-db"
-# database_id = "your-database-id-here"
+# Worker entry point
+main = ".open-next/worker.js"
 
 # Environment variables
 [vars]
