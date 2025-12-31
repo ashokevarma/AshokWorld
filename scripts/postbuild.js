@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const OPEN_NEXT_DIR = '.open-next';
+const PUBLIC_DIR = 'public';
 
 console.log('📦 Running post-build script for Cloudflare Pages...');
 
@@ -47,6 +48,23 @@ if (fs.existsSync(assetsDir)) {
     copyFolderRecursive(nextStaticSrc, nextStaticDest);
     console.log('✅ Copied _next static assets to root');
   }
+}
+
+// Copy public folder contents to .open-next root
+if (fs.existsSync(PUBLIC_DIR)) {
+  const publicFiles = fs.readdirSync(PUBLIC_DIR);
+  
+  for (const item of publicFiles) {
+    const srcPath = path.join(PUBLIC_DIR, item);
+    const destPath = path.join(OPEN_NEXT_DIR, item);
+    
+    if (fs.statSync(srcPath).isDirectory()) {
+      copyFolderRecursive(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+  console.log('✅ Copied public folder assets (images, favicon, fonts)');
 }
 
 console.log('✅ Post-build complete!');

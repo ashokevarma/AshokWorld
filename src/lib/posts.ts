@@ -1,81 +1,30 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { Post, PostCard, PostFrontmatter, Category } from '@/types';
-import { calculateReadingTime, countWords } from './utils';
+import { Post, PostCard, Category } from '@/types';
 
-const POSTS_DIRECTORY = path.join(process.cwd(), 'content', 'blog');
+// Import pre-generated posts data (generated at build time)
+import postsData from './posts-data.json';
+
+// Type assertion for the imported JSON
+const allPostsData = postsData as Post[];
 
 /**
  * Get all post slugs
  */
 export function getPostSlugs(): string[] {
-  const slugs: string[] = [];
-  
-  // Check if directory exists
-  if (!fs.existsSync(POSTS_DIRECTORY)) {
-    return slugs;
-  }
-
-  // Get all category directories
-  const categories = fs.readdirSync(POSTS_DIRECTORY);
-
-  for (const category of categories) {
-    const categoryPath = path.join(POSTS_DIRECTORY, category);
-    
-    if (fs.statSync(categoryPath).isDirectory()) {
-      const files = fs.readdirSync(categoryPath);
-      
-      for (const file of files) {
-        if (file.endsWith('.mdx')) {
-          slugs.push(file.replace('.mdx', ''));
-        }
-      }
-    }
-  }
-
-  return slugs;
+  return allPostsData.map(post => post.slug);
 }
 
 /**
  * Get post by slug
  */
 export function getPostBySlug(slug: string): Post | null {
-  // Search in all category directories
-  const categories = ['ai', 'cloud', 'infra', 'database'];
-
-  for (const category of categories) {
-    const filePath = path.join(POSTS_DIRECTORY, category, `${slug}.mdx`);
-    
-    if (fs.existsSync(filePath)) {
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-      const { data, content } = matter(fileContents);
-      const frontmatter = data as PostFrontmatter;
-
-      return {
-        ...frontmatter,
-        slug,
-        content,
-        readingTime: calculateReadingTime(content),
-        wordCount: countWords(content),
-      };
-    }
-  }
-
-  return null;
+  return allPostsData.find(post => post.slug === slug) || null;
 }
 
 /**
  * Get all posts
  */
 export function getAllPosts(): Post[] {
-  const slugs = getPostSlugs();
-  const posts = slugs
-    .map((slug) => getPostBySlug(slug))
-    .filter((post): post is Post => post !== null && post.published)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  return posts;
+  return allPostsData.filter(post => post.published);
 }
 
 /**
@@ -173,4 +122,3 @@ export function getPostCountByCategory(): Record<Category, number> {
     database: posts.filter((p) => p.category === 'database').length,
   };
 }
-

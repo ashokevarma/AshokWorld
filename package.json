@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:cloudflare": "npx opennextjs-cloudflare build && node scripts/postbuild.js",
+    "prebuild": "node scripts/generate-posts.js",
+    "build": "node scripts/generate-posts.js && next build",
+    "build:cloudflare": "node scripts/generate-posts.js && npx opennextjs-cloudflare build && node scripts/postbuild.js",
     "start": "next start",
     "lint": "next lint",
     "preview": "npx wrangler dev",
