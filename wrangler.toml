@@ -1,11 +1,5 @@
-# Cloudflare Pages configuration (Static Export)
-# Documentation: https://developers.cloudflare.com/pages/
+# Cloudflare Pages - Static Site
+# Build output: out/
 
 name = "ashok-world"
-
-# Static export output directory
 pages_build_output_dir = "out"
-
-# Note: D1 database not needed for static site
-# For analytics, consider using Cloudflare Web Analytics (free):
-# https://www.cloudflare.com/web-analytics/

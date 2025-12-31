@@ -13,12 +13,12 @@ export const siteConfig: SiteConfig = {
     name: 'Ashok Kumar Varma',
     email: 'ashok.dox@gmail.com',
     twitter: 'ashokvarma',
-    github: 'ashokvarma',
+    github: 'ashokevarma',
     linkedin: 'ashok-kumar-varma-sagiraju-02337aa2',
   },
   links: {
     twitter: 'https://twitter.com/ashokvarma',
-    github: 'https://github.com/ashokvarma',
+    github: 'https://github.com/ashokevarma',
     linkedin: 'https://linkedin.com/in/ashok-kumar-varma-sagiraju-02337aa2',
   },
 };

@@ -11,7 +11,7 @@ export default function AdminPage() {
   const counts = getPostCountByCategory();
   const totalPosts = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
-  // Mock stats - in production, these would come from D1
+  // Stats overview
   const stats = [
     {
       label: 'Total Posts',

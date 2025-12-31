@@ -9,7 +9,6 @@ import { siteConfig } from '@/lib/config';
 import { CategoryBadge, Button } from '@/components/ui';
 import { TableOfContents } from '@/components/blog/TableOfContents';
 import { PostCard } from '@/components/blog/PostCard';
-import { ViewTracker } from '@/components/blog/ViewTracker';
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -122,7 +121,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   <Clock className="w-4 h-4" />
                   {post.readingTime}
                 </span>
-                <ViewTracker slug={slug} />
                 <span className="flex items-center gap-1.5">
                   <Tag className="w-4 h-4" />
                   {post.tags.slice(0, 3).join(', ')}

@@ -6,15 +6,8 @@
     "dev": "next dev",
     "prebuild": "node scripts/generate-posts.js",
     "build": "node scripts/generate-posts.js && next build",
-    "build:cloudflare": "node scripts/generate-posts.js && next build",
     "start": "next start",
-    "lint": "next lint",
-    "preview": "npx wrangler dev",
-    "deploy": "npm run build:cloudflare && npx wrangler deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "wrangler d1 migrations apply ashok-world-db --local",
-    "db:migrate:prod": "wrangler d1 migrations apply ashok-world-db"
+    "lint": "next lint"
   },
   "dependencies": {
     "next": "15.5.9",
@@ -24,29 +17,20 @@
     "gray-matter": "^4.0.3",
     "reading-time": "^1.5.0",
     "shiki": "^3.2.1",
-    "drizzle-orm": "^0.44.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.511.0"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.14.0",
-    "@cloudflare/workers-types": "^4.20250525.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.15.21",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "autoprefixer": "^10.4.21",
-    "drizzle-kit": "^0.31.8",
     "eslint": "^9.27.0",
     "eslint-config-next": "15.5.9",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3",
-    "wrangler": "^4.17.0"
-  },
-  "overrides": {
-    "path-to-regexp": "^8.0.0",
-    "esbuild": "^0.25.0"
+    "typescript": "^5.8.3"
   }
 }

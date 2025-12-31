@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Github, Twitter, Linkedin, ChevronDown, Cloud, Brain, Server, Database, BookOpen, FileText, Video } from 'lucide-react';
+import { Menu, X, Github, Twitter, Linkedin, ChevronDown, Cloud, Brain, Database, BookOpen, FileText, Video, Server } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { siteConfig, socialLinks, categories, recommendSections } from '@/lib/config';
+import { socialLinks, categories, recommendSections } from '@/lib/config';
+import { QuoteOfTheDay } from '@/components/ui/QuoteOfTheDay';
+import { LocalDateTime } from '@/components/ui/LocalDateTime';
 
 /**
  * Category icons mapping
@@ -86,20 +88,20 @@ export function Header() {
           : 'bg-transparent'
       )}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 group"
-          >
-            <span className="text-2xl font-display font-bold text-text-primary group-hover:text-accent-primary transition-colors">
-              {siteConfig.name}
-            </span>
+      <div className="w-full px-2 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
+          {/* Quote of the Day (Far Left) - Hidden on small mobile */}
+          <div className="hidden sm:block flex-shrink-0 max-w-[200px] md:max-w-[300px] lg:max-w-none">
+            <QuoteOfTheDay />
+          </div>
+          
+          {/* Mobile: Site name */}
+          <Link href="/" className="sm:hidden text-lg font-bold text-accent-primary">
+            AshokWorld
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Desktop Navigation (Center) */}
+          <nav className="hidden lg:flex items-center gap-1">
             {/* Home */}
             <Link
               href="/"
@@ -150,7 +152,11 @@ export function Header() {
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                           onClick={() => setIsCategoriesOpen(false)}
                         >
-                          <Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+                          {Icon ? (
+                            <Icon className="w-5 h-5 text-gray-400 group-hover:text-gray-600" />
+                          ) : (
+                            <span className="w-5 h-5 text-gray-400">🖥️</span>
+                          )}
                           <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
                             {category.name}
                           </span>
@@ -256,25 +262,38 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* Desktop Social Links */}
-          <div className="hidden md:flex items-center gap-2">
-            {socialLinks.map((link) => (
-              <a
-                key={link.name}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-bg-elevated"
-                aria-label={link.name}
-              >
-                {iconMap[link.icon]}
-              </a>
-            ))}
+          {/* Desktop Right Section: DateTime + Social Links (Far Right) */}
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+            {/* Social Links */}
+            <div className="flex items-center gap-1">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-bg-elevated"
+                  aria-label={link.name}
+                >
+                  {iconMap[link.icon]}
+                </a>
+              ))}
+            </div>
+            
+            {/* Local Date/Time (Far Right) */}
+            <div className="border-l border-border pl-3">
+              <LocalDateTime />
+            </div>
+          </div>
+          
+          {/* Tablet: Just show time */}
+          <div className="hidden sm:flex lg:hidden items-center">
+            <LocalDateTime />
           </div>
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
+            className="lg:hidden p-2 text-text-secondary hover:text-text-primary transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -288,7 +307,12 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border animate-fade-in">
+          <div className="lg:hidden py-4 border-t border-border animate-fade-in">
+            {/* Mobile Date/Time */}
+            <div className="px-4 pb-4 mb-2 border-b border-border">
+              <LocalDateTime />
+            </div>
+            
             <nav className="flex flex-col gap-1">
               <Link
                 href="/"
@@ -321,7 +345,11 @@ export function Header() {
                             : 'text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
                         )}
                       >
-                        <Icon className="w-4 h-4" />
+                        {Icon ? (
+                          <Icon className="w-4 h-4" />
+                        ) : (
+                          <span className="w-4 h-4">🖥️</span>
+                        )}
                         <span className="text-sm">{category.name}</span>
                       </Link>
                     );

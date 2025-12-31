@@ -99,20 +99,3 @@ export interface TechItem {
   category: 'language' | 'framework' | 'cloud' | 'database' | 'tool';
 }
 
-/**
- * View count data from D1
- */
-export interface ViewCount {
-  slug: string;
-  views: number;
-}
-
-/**
- * API response types
- */
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-

@@ -77,21 +77,22 @@ export function LatestPosts({ posts }: LatestPostsProps) {
   }
 
   return (
-    <section className="py-20 bg-bg-secondary/30">
+    <section className="py-12 sm:py-16 lg:py-20 bg-bg-secondary/30">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Section header */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-text-primary mb-2">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-text-primary mb-1 sm:mb-2">
               Latest Articles
             </h2>
-            <p className="text-text-secondary">
+            <p className="text-sm sm:text-base text-text-secondary">
               Deep dives into technology, engineering, and best practices.
             </p>
           </div>
-          <Link href="/blog">
+          <Link href="/blog" className="self-start sm:self-auto">
             <Button
               variant="ghost"
+              size="sm"
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               View all posts
@@ -99,25 +100,27 @@ export function LatestPosts({ posts }: LatestPostsProps) {
           </Link>
         </div>
 
-        {/* Time Filter Tabs */}
-        <div className="flex flex-wrap items-center gap-2 mb-8 p-1 bg-bg-elevated rounded-xl border border-border w-fit">
-          {timeFilters.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              className={`
-                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                ${
-                  activeFilter === filter.key
-                    ? 'bg-accent-primary text-bg-primary shadow-lg shadow-accent-primary/20'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
-                }
-              `}
-            >
-              {filter.key !== 'all' && <Calendar className="w-4 h-4" />}
-              {filter.label}
-            </button>
-          ))}
+        {/* Time Filter Tabs - Scrollable on mobile */}
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-6 sm:mb-8">
+          <div className="flex items-center gap-1.5 sm:gap-2 p-1 bg-bg-elevated rounded-xl border border-border w-max sm:w-fit">
+            {timeFilters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setActiveFilter(filter.key)}
+                className={`
+                  flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap
+                  ${
+                    activeFilter === filter.key
+                      ? 'bg-accent-primary text-bg-primary shadow-lg shadow-accent-primary/20'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+                  }
+                `}
+              >
+                {filter.key !== 'all' && <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />}
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Results count */}
@@ -133,7 +136,7 @@ export function LatestPosts({ posts }: LatestPostsProps) {
 
         {/* Posts grid */}
         {filteredPosts.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredPosts.map((post, index) => (
               <div
                 key={post.slug}

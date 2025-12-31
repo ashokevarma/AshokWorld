@@ -58,7 +58,7 @@ function getAllPosts() {
         featured: data.featured || false,
         readingTime: calculateReadingTime(content),
         wordCount: countWords(content),
-        content: content, // Include content for individual post pages
+        content: content,
       });
     }
   }
@@ -75,7 +75,6 @@ const posts = getAllPosts();
 
 console.log(`Found ${posts.length} published posts`);
 
-// Write to JSON file
 fs.writeFileSync(OUTPUT_FILE, JSON.stringify(posts, null, 2));
 
 console.log(`✅ Posts data written to ${OUTPUT_FILE}`);
