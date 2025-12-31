@@ -7,9 +7,9 @@ import { CategoryFilter } from '@/components/blog/CategoryFilter';
 import { Category } from '@/types';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 /**
@@ -25,31 +25,33 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
-  const category = getCategoryBySlug(params.category);
+  const { category } = await params;
+  const categoryData = getCategoryBySlug(category);
 
-  if (!category) {
+  if (!categoryData) {
     return {
       title: 'Category Not Found',
     };
   }
 
   return {
-    title: `${category.name} Articles`,
-    description: category.description,
+    title: `${categoryData.name} Articles`,
+    description: categoryData.description,
   };
 }
 
 /**
  * Category page - filtered blog listing
  */
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = getCategoryBySlug(params.category);
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const { category } = await params;
+  const categoryData = getCategoryBySlug(category);
 
-  if (!category) {
+  if (!categoryData) {
     notFound();
   }
 
-  const posts = getPostsByCategory(params.category as Category);
+  const posts = getPostsByCategory(category as Category);
   const counts = getPostCountByCategory();
 
   return (
@@ -58,16 +60,16 @@ export default function CategoryPage({ params }: CategoryPageProps) {
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl md:text-5xl font-display font-bold text-text-primary mb-4">
-            {category.name}
+            {categoryData.name}
           </h1>
           <p className="text-lg text-text-secondary max-w-2xl">
-            {category.description}
+            {categoryData.description}
           </p>
         </div>
 
         {/* Category Filter */}
         <div className="mb-8">
-          <CategoryFilter activeCategory={params.category as Category} counts={counts} />
+          <CategoryFilter activeCategory={category as Category} counts={counts} />
         </div>
 
         {/* Posts Grid */}
@@ -98,4 +100,3 @@ export default function CategoryPage({ params }: CategoryPageProps) {
     </div>
   );
 }
-

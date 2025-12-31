@@ -11,9 +11,9 @@ import { TableOfContents } from '@/components/blog/TableOfContents';
 import { PostCard } from '@/components/blog/PostCard';
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 /**
@@ -30,7 +30,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     return {
@@ -61,7 +62,8 @@ export async function generateMetadata({
  * Blog post page
  */
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const post = getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -74,7 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const headings = extractHeadings(post.content);
 
   // Get related posts
-  const relatedPosts = getRelatedPosts(params.slug, post.category, 3);
+  const relatedPosts = getRelatedPosts(slug, post.category, 3);
 
   return (
     <article className="min-h-screen py-12">
@@ -199,4 +201,3 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     </article>
   );
 }
-
