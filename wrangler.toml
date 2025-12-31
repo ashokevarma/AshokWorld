@@ -8,6 +8,13 @@ compatibility_flags = ["nodejs_compat"]
 # Pages build output directory (REQUIRED for Cloudflare Pages)
 pages_build_output_dir = ".open-next"
 
+# D1 Database binding
+# Replace YOUR_DATABASE_ID with your actual D1 database ID from Cloudflare Dashboard
+[[d1_databases]]
+binding = "DB"
+database_name = "ashok-world-db"
+database_id = "9b915701-ab41-44fd-b499-d97989f3e693"  # Get this from: Dashboard > D1 > ashok-world-db
+
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
