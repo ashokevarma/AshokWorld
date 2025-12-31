@@ -5,9 +5,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-// Edge runtime for Cloudflare Pages
-export const runtime = 'edge';
-
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
